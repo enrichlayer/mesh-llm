@@ -333,7 +333,8 @@ fn extract_zip(archive_path: &Path, destination: &Path) -> Result<()> {
     for index in 0..archive.len() {
         let mut file = archive.by_index(index)?;
         let Some(enclosed) = file.enclosed_name() else {
-            bail!("zip archive contains unsafe path: {}", file.name());
+            let name = file.name().context("zip archive contains unsafe path")?;
+            bail!("zip archive contains unsafe path: {name}");
         };
         let output_path = destination.join(enclosed);
         if file.is_dir() {
@@ -923,3 +924,6 @@ mod tests {
         assert!(web_ui.validation.reason.unwrap().contains("escapes"));
     }
 }
+
+#[cfg(test)]
+mod zip_tests;

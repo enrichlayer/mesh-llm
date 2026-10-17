@@ -1504,6 +1504,11 @@ async fn chat_completion_route_rejects_malformed_tools_as_invalid_requests() {
         json!([{"type": "function"}]),
         json!([{"type": "banana", "function": {"name": "f", "parameters": {}}}]),
         json!([{"type": "function", "function": "nope"}]),
+        json!([{"type": "function", "function": {}}]),
+        json!([{"type": "function", "function": {"name": null}}]),
+        json!([{"type": "function", "function": {"name": 7}}]),
+        json!([{"type": "function", "function": {"name": ""}}]),
+        json!([{"type": "function", "function": {"name": "  "}}]),
     ] {
         let response = post_json(
             "/v1/chat/completions",
