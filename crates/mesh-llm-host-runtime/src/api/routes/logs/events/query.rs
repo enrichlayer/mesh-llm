@@ -291,16 +291,12 @@ fn parse_query(path: &str) -> Result<ParsedQuery, LogsError> {
                     ));
                 }
             }
-            "severity" => {
-                if audit_mode {
-                    let severity = parse_audit_severity(&value)?;
-                    if audit_selection.severity.is_some() {
-                        return Err(LogsError::InvalidQuery("duplicate audit severity"));
-                    }
-                    audit_selection.severity = Some(severity);
-                } else {
-                    return Err(LogsError::InvalidQuery("unknown event stream parameter"));
+            "severity" if audit_mode => {
+                let severity = parse_audit_severity(&value)?;
+                if audit_selection.severity.is_some() {
+                    return Err(LogsError::InvalidQuery("duplicate audit severity"));
                 }
+                audit_selection.severity = Some(severity);
             }
             "cursor" if cursor.is_none() && !audit_mode => {
                 cursor = Some(Cursor::parse(nonempty(&value)?)?);
@@ -841,6 +837,14 @@ mod tests {
                 "malformed audit cursor must reject: {path}"
             );
         }
+    }
+
+    #[test]
+    fn non_audit_mode_still_rejects_severity() {
+        assert!(matches!(
+            parse_subscription("/api/logs/events?channel=requests&severity=info", REQUEST),
+            Err(LogsError::InvalidQuery("unknown event stream parameter"))
+        ));
     }
 
     #[test]

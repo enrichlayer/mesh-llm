@@ -1012,13 +1012,24 @@ fn test_skippy_backend_error_uses_cpu_only_budget_without_legacy_fallback() {
 
     skippy_devices::clear_test_gpu_facts_result();
 
-    assert!(handled);
+    // Dynamic hosts cannot probe devices before a native runtime is loaded.
+    // The injected GPU outcome must not bypass that production guard.
+    if cfg!(feature = "dynamic-native-runtime") {
+        assert!(!skippy_runtime::native_runtime_loaded());
+        assert!(!handled);
+    } else {
+        assert!(handled);
+    }
     assert_eq!(survey.gpu_name, None);
     assert_eq!(survey.gpu_name_source, None);
     assert_eq!(survey.gpu_count, 0);
     assert!(survey.gpu_vram.is_empty());
     assert!(survey.gpus.is_empty());
-    assert!(survey.vram_bytes > 0);
+    if cfg!(feature = "dynamic-native-runtime") {
+        assert_eq!(survey.vram_bytes, 0);
+    } else {
+        assert!(survey.vram_bytes > 0);
+    }
 }
 
 #[cfg(all(target_os = "linux", feature = "skippy-devices"))]
@@ -1040,13 +1051,24 @@ fn test_skippy_backend_empty_result_uses_cpu_only_budget_without_legacy_fallback
 
     skippy_devices::clear_test_gpu_facts_result();
 
-    assert!(handled);
+    // Dynamic hosts cannot probe devices before a native runtime is loaded.
+    // The injected GPU outcome must not bypass that production guard.
+    if cfg!(feature = "dynamic-native-runtime") {
+        assert!(!skippy_runtime::native_runtime_loaded());
+        assert!(!handled);
+    } else {
+        assert!(handled);
+    }
     assert_eq!(survey.gpu_name, None);
     assert_eq!(survey.gpu_name_source, None);
     assert_eq!(survey.gpu_count, 0);
     assert!(survey.gpu_vram.is_empty());
     assert!(survey.gpus.is_empty());
-    assert!(survey.vram_bytes > 0);
+    if cfg!(feature = "dynamic-native-runtime") {
+        assert_eq!(survey.vram_bytes, 0);
+    } else {
+        assert!(survey.vram_bytes > 0);
+    }
 }
 
 #[test]
